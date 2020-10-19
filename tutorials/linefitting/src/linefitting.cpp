@@ -4,6 +4,10 @@
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 
+
+// The goal is to fit a line of the form y = m x + c
+// I provide noisy (x, y) and estimate (m, c)
+
 using namespace std;
 using namespace gtsam;
 
