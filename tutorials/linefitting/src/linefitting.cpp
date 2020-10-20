@@ -6,8 +6,7 @@
 
 
 // The goal is to fit a line of the form y = m x + c
-// I provide noisy (x, y) and estimate (m, c)
-
+// We provide noisy (x, y) & estimate (m, c)
 using namespace std;
 using namespace gtsam;
 

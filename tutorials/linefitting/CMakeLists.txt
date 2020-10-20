@@ -15,3 +15,6 @@ include_directories(${Boost_INCLUDE_DIR})
 
 add_executable(linefitting src/linefitting.cpp)
 target_link_libraries(linefitting gtsam ${Boost_LIBRARIES})
+
+add_executable(linefittingExpressions src/linefittingExpressions.cpp)
+target_link_libraries(linefittingExpressions gtsam ${Boost_LIBRARIES})
