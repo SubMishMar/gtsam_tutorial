@@ -13,6 +13,14 @@
 using namespace std;
 using namespace gtsam;
 
+// The following is the implementation of an equivalent of
+// residual used in ceres solver.
+// For curve fitting I cannot think of a way of separating
+// h(x) and z
+// So, here the r returned is basically the residual which
+// is r = h(x) - z, the goal of optimization is to find
+// the state variables which makes r = 0, or more precisely the
+// summation of all r = 0.
 double line(const Vector2& mc, const Vector2& xy,
             OptionalJacobian<1, 2> Hmc,
             OptionalJacobian<1, 2> Hxy) {
