@@ -140,6 +140,7 @@ void loadKittiData(KittiCalibration& kitti_calibration,
             measurement.gyroscope = Vector3(gyro_x, gyro_y, gyro_z);
             imu_measurements.push_back(measurement);
         }
+        std::cout << "No of IMU measurements: " << imu_measurements.size() << std::endl;
     }
 
     // Read GPS data
@@ -160,6 +161,7 @@ void loadKittiData(KittiCalibration& kitti_calibration,
             measurement.position = Vector3(gps_x, gps_y, gps_z);
             gps_measurements.push_back(measurement);
         }
+        std::cout << "No of GPS measurements: " << gps_measurements.size() << std::endl;
     }
 }
 
@@ -193,6 +195,7 @@ int main(int argc, char* argv[]) {
     vector<ImuMeasurement> imu_measurements;
     vector<GpsMeasurement> gps_measurements;
     loadKittiData(kitti_calibration, imu_measurements, gps_measurements);
+
     Vector6 BodyP = (Vector6() << kitti_calibration.body_ptx, kitti_calibration.body_pty, kitti_calibration.body_ptz,
                                   kitti_calibration.body_prx, kitti_calibration.body_pry, kitti_calibration.body_prz)
                     .finished();
