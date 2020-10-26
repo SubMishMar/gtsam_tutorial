@@ -193,7 +193,6 @@ int main(int argc, char* argv[]) {
     vector<ImuMeasurement> imu_measurements;
     vector<GpsMeasurement> gps_measurements;
     loadKittiData(kitti_calibration, imu_measurements, gps_measurements);
-
     Vector6 BodyP = (Vector6() << kitti_calibration.body_ptx, kitti_calibration.body_pty, kitti_calibration.body_ptz,
                                   kitti_calibration.body_prx, kitti_calibration.body_pry, kitti_calibration.body_prz)
                     .finished();
