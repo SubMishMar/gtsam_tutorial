@@ -70,7 +70,7 @@ public:
     }
 };
 
-struct IMUCalibration {
+struct IMUIntrinsics {
     double accelerometer_sigma;
     double gyroscope_sigma;
     double integration_sigma;
@@ -102,7 +102,7 @@ string imu_meta_data_filename;
 string imu_data_filename;
 string lopose_data_filename;
 
-void loadIMULOPoseData(IMUCalibration& imu_calibration,
+void loadIMULOPoseData(IMUIntrinsics& imu_calibration,
                        vector<ImuMeasurement>& imu_measurements,
                        vector<LOPoseMeasurement>& lopose_measurements) {
     string line;
@@ -171,30 +171,18 @@ void loadIMULOPoseData(IMUCalibration& imu_calibration,
     }
 }
 
-
-int main(int argc, char* argv[]) {
-    imu_meta_data_filename = argv[1];
-    imu_data_filename = argv[2];
-    lopose_data_filename = argv[3];
-
-    std::cout << "imu_meta_data_filename: " << imu_meta_data_filename << std::endl;
-    std::cout << "imu_data_filename: " << imu_data_filename << std::endl;
-    std::cout << "gps_data_filename: " << lopose_data_filename << std::endl;
-
-    IMUCalibration imu_calibration;
-    vector<ImuMeasurement> imu_measurements;
-    vector<LOPoseMeasurement> lopose_measurements;
-    loadIMULOPoseData(imu_calibration, imu_measurements, lopose_measurements);
-
+void rotationalHandEyeCalibration(IMUIntrinsics imu_intrinsics,
+                                  vector<ImuMeasurement> imu_measurements,
+                                  vector<LOPoseMeasurement> lopose_measurements) {
     double g = 9.8; // [TODO: Check if this should ne -ve]
     auto w_coriolis = Vector3::Zero();  // zero vector
 
     // Set IMU preintegration parameters
     auto current_bias = imuBias::ConstantBias();  // zero bias
-    Matrix33 measured_acc_cov = I_3x3 * pow(imu_calibration.accelerometer_sigma, 2);
-    Matrix33 measured_omega_cov = I_3x3 * pow(imu_calibration.gyroscope_sigma, 2);
+    Matrix33 measured_acc_cov = I_3x3 * pow(imu_intrinsics.accelerometer_sigma, 2);
+    Matrix33 measured_omega_cov = I_3x3 * pow(imu_intrinsics.gyroscope_sigma, 2);
     // error committed in integrating position from velocities
-    Matrix33 integration_error_cov = I_3x3 * pow(imu_calibration.integration_sigma, 2);
+    Matrix33 integration_error_cov = I_3x3 * pow(imu_intrinsics.integration_sigma, 2);
 
     auto imu_params = PreintegratedImuMeasurements::Params::MakeSharedU(g);
     imu_params->accelerometerCovariance = measured_acc_cov;     // acc white noise in continuous
@@ -216,8 +204,8 @@ int main(int argc, char* argv[]) {
         Rot3 deltaRij_L = delta_lo_pose.rotation();
         Eigen::Matrix3d deltaRij_L_eig;
         deltaRij_L_eig << deltaRij_L.r1().x(), deltaRij_L.r2().x(), deltaRij_L.r3().x(),
-                          deltaRij_L.r1().y(), deltaRij_L.r2().y(), deltaRij_L.r3().y(),
-                          deltaRij_L.r1().z(), deltaRij_L.r2().z(), deltaRij_L.r3().z();
+                deltaRij_L.r1().y(), deltaRij_L.r2().y(), deltaRij_L.r3().y(),
+                deltaRij_L.r1().z(), deltaRij_L.r2().z(), deltaRij_L.r3().z();
 
         current_summarized_measurement = std::make_shared<PreintegratedImuMeasurements>(imu_params, current_bias);
         size_t j = 0;
@@ -229,11 +217,12 @@ int main(int argc, char* argv[]) {
             }
             j++;
         }
+        std::cout << i << "\t" << current_summarized_measurement->deltaRij().xyz().transpose()*180/M_PI << std::endl;
         Rot3 deltaRij_I = current_summarized_measurement->deltaRij();
         Eigen::Matrix3d deltaRij_I_eig;
         deltaRij_I_eig << deltaRij_I.r1().x(), deltaRij_I.r2().x(), deltaRij_I.r3().x(),
-                          deltaRij_I.r1().y(), deltaRij_I.r2().y(), deltaRij_I.r3().y(),
-                          deltaRij_I.r1().z(), deltaRij_I.r2().z(), deltaRij_I.r3().z();
+                deltaRij_I.r1().y(), deltaRij_I.r2().y(), deltaRij_I.r3().y(),
+                deltaRij_I.r1().z(), deltaRij_I.r2().z(), deltaRij_I.r3().z();
 
         Eigen::Vector3d axisangle_imu;
         ceres::RotationMatrixToAngleAxis(deltaRij_I_eig.data(), axisangle_imu.data());
@@ -245,7 +234,6 @@ int main(int argc, char* argv[]) {
                         (new rotationError(axisangle_imu, axisangle_lidar));
         problem_rot.AddResidualBlock(cost_function_rot, loss_function_rot, calib_angle.data());
     }
-
     ceres::Solver::Options options_rot;
     options_rot.linear_solver_type = ceres::DENSE_QR;
     options_rot.minimizer_progress_to_stdout = true;
@@ -259,6 +247,22 @@ int main(int argc, char* argv[]) {
     std::cout << "Pitch: " << euler_RPY.y() << std::endl;
     std::cout << "Yaw: " << euler_RPY.z() << std::endl;
     std::cout << I_R_L << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    imu_meta_data_filename = argv[1];
+    imu_data_filename = argv[2];
+    lopose_data_filename = argv[3];
+
+    std::cout << "imu_meta_data_filename: " << imu_meta_data_filename << std::endl;
+    std::cout << "imu_data_filename: " << imu_data_filename << std::endl;
+    std::cout << "gps_data_filename: " << lopose_data_filename << std::endl;
+
+    IMUIntrinsics imu_intrinsics;
+    vector<ImuMeasurement> imu_measurements;
+    vector<LOPoseMeasurement> lopose_measurements;
+    loadIMULOPoseData(imu_intrinsics, imu_measurements, lopose_measurements);
+    rotationalHandEyeCalibration(imu_intrinsics, imu_measurements, lopose_measurements);
 
     return 1;
 }
