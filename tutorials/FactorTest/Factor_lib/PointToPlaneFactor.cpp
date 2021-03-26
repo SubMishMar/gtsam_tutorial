@@ -47,7 +47,7 @@ namespace gtsam {
         Rot3 G_R_I1 = wT1.rotation();
         Matrix3 H_L1RLmplusi_GvIm = Matrix3::Zero();
         Matrix3 H_L1pLmplusi_GvIm = Rc.matrix().transpose()*G_R_I1.matrix().transpose()*deltaT;
-        Matrix63 H_L1TLmplusi_GvIm;
+        Matrix63 H_L1TLmplusi_GvIm; ;
         H_L1TLmplusi_GvIm.block(0, 0, 3, 3) = H_L1RLmplusi_GvIm;
         H_L1TLmplusi_GvIm.block(3, 0, 3, 3) = H_L1pLmplusi_GvIm;
 
@@ -66,13 +66,13 @@ namespace gtsam {
         Matrix H_res_xL1 = n_L1.transpose();
 
         if (H1)
-            (*H1) = (Matrix(1, 6) << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTI1).finished();
+            (*H1) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTI1).finished();
         if (H2)
-            (*H2) = (Matrix(1, 6) << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTIm).finished();
+            (*H2) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTIm).finished();
         if (H3)
-            (*H3) = (Matrix(1, 3) << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GvIm).finished();
+            (*H3) = (Matrix13() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GvIm).finished();
         if (H4)
-            (*H4) = (Matrix(1, 6) << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_Tc).finished();
+            (*H4) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_Tc).finished();
         return res;
     }
 
@@ -88,7 +88,7 @@ namespace gtsam {
 
         Pose3 A = Pose3(Rot3::identity(), wVm*deltaT + 0.5*gravity*deltaT*deltaT);
         Pose3 B = Pose3(deltaR, deltaP);
-        Matrix H_1, H_2, H_3, H_4, H_5, H_6, H_7, H_8, H_9, H_10, H_11, H_12;
+        Eigen::Matrix<double, 6, 6> H_1, H_2, H_3, H_4, H_5, H_6, H_7, H_8, H_9, H_10, H_11, H_12;
 
         Pose3 T1 = Tc.inverse(H_1);
         Pose3 T2 = wT1.inverse(H_2);
@@ -104,7 +104,7 @@ namespace gtsam {
 
         /// Jacobian of L1_T_Lmplusi wrt GTI1
         Matrix H_L1TLmplusi_GTI1 = H_11*H_9*H_7*H_5*H_4*H_2;
-//
+
         /// Jacobian of L1_T_Lmplusi wrt GTIm
         Matrix H_L1TLmplusi_GTIm = H_11*H_9*H_8;
 
@@ -129,7 +129,7 @@ namespace gtsam {
         H_L1TLmplusi_GvIm.block(3, 0, 3, 3) = H_L1pLmplusi_GvIm;
 
         /// Transform lidar point measurement
-        Matrix H_xL1_L1TLmplusi; /// Jacobian of x_L1 wrt L1_T_Lmplusi (3 x 6)
+        Eigen::Matrix<double, 3, 6> H_xL1_L1TLmplusi; /// Jacobian of x_L1 wrt L1_T_Lmplusi (3 x 6)
         Point3 x_L1 = L1_T_Lmplusi.transformFrom(lidar_point_measurement_, H_xL1_L1TLmplusi);
 
         /// Point to plane constraint
@@ -166,7 +166,6 @@ namespace gtsam {
         /// Calibration params
         Rot3 Rc = Tc.rotation();
         Vector3 pc = Tc.translation();
-
         /// First State
         Rot3 G_R_I1 = wT1.rotation();
         Vector3 G_p_I1 = wT1.translation();
@@ -200,12 +199,12 @@ namespace gtsam {
         Matrix H_res_xL1 = n_L1.transpose(); /// Jacobian of res wrt xL1 ( 1 x 3 )
 
         /// Jacobians of L1_T_Lmplus wrt G_T_I1
-        Matrix3 H_L1RLmplusi_GRI1 = -Rc.matrix().transpose()*G_R_Implusi.matrix().transpose()*G_R_I1.matrix();
-        Matrix3 H_L1RLmplusi_GpI1 = Matrix3::Zero();
-        Matrix3 H_L1pLmplusi_GRI1 =  Rc.matrix().transpose()*skewSymmetric(G_R_I1.matrix().transpose()*(G_R_Implusi.matrix().transpose()*pc + G_p_Implusi - G_p_I1));
-        Matrix3 H_L1pLmplusi_GpI1 = -Rc.matrix().transpose();
+        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> H_L1RLmplusi_GRI1 = -Rc.matrix().transpose()*G_R_Implusi.matrix().transpose()*G_R_I1.matrix();
+        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> H_L1RLmplusi_GpI1 = Matrix3::Zero();
+        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> H_L1pLmplusi_GRI1 =  Rc.matrix().transpose()*skewSymmetric(G_R_I1.matrix().transpose()*(G_R_Implusi.matrix().transpose()*pc + G_p_Implusi - G_p_I1));
+        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> H_L1pLmplusi_GpI1 = -Rc.matrix().transpose();
 
-        Matrix6 H_L1TLmplusi_GTI1;
+        Eigen::Matrix<double, 6, 6, Eigen::DontAlign> H_L1TLmplusi_GTI1;
         H_L1TLmplusi_GTI1.block(0, 0, 3, 3) = H_L1RLmplusi_GRI1;
         H_L1TLmplusi_GTI1.block(0, 3, 3, 3) = H_L1RLmplusi_GpI1;
         H_L1TLmplusi_GTI1.block(3, 0, 3, 3) = H_L1pLmplusi_GRI1;
@@ -217,7 +216,7 @@ namespace gtsam {
         Matrix3 H_L1pLmplusi_GRIm = -Rc.matrix().transpose()*G_R_I1.matrix().transpose()*G_R_Im.matrix()*skewSymmetric(deltaR.matrix()*pc + deltaP);
         Matrix3 H_L1pLmplusi_GpIm = Rc.matrix().transpose()*G_R_I1.matrix().transpose()*G_R_Im.transpose();
 
-        Matrix6 H_L1TLmplusi_GTIm;
+        Eigen::Matrix<double, 6, 6, Eigen::DontAlign> H_L1TLmplusi_GTIm;
         H_L1TLmplusi_GTIm.block(0, 0, 3, 3) = H_L1RLmplusi_GRIm;
         H_L1TLmplusi_GTIm.block(0, 3, 3, 3) = H_L1RLmplusi_GpIm;
         H_L1TLmplusi_GTIm.block(3, 0, 3, 3) = H_L1pLmplusi_GRIm;
@@ -227,7 +226,7 @@ namespace gtsam {
         Matrix3 H_L1RLmplusi_GvIm = Matrix3::Zero();
         Matrix3 H_L1pLmplusi_GvIm = Rc.matrix().transpose()*G_R_I1.matrix().transpose()*deltaT;
 
-        Matrix63 H_L1TLmplusi_GvIm;
+        Eigen::Matrix<double, 6, 3, Eigen::DontAlign> H_L1TLmplusi_GvIm;
         H_L1TLmplusi_GvIm.block(0, 0, 3, 3) = H_L1RLmplusi_GvIm;
         H_L1TLmplusi_GvIm.block(3, 0, 3, 3) = H_L1pLmplusi_GvIm;
 
@@ -237,7 +236,7 @@ namespace gtsam {
         Matrix3 H_L1pLmplusi_Rc = skewSymmetric(L1_p_Lmplusi);
         Matrix3 H_L1pLmplusi_pc = L1_R_Lmplusi.matrix() - Matrix3::Identity();
 
-        Matrix6 H_L1TLmplusi_Tc;
+        Eigen::Matrix<double, 6, 6, Eigen::DontAlign> H_L1TLmplusi_Tc;
         H_L1TLmplusi_Tc.block(0, 0, 3, 3) = H_L1RLmplusi_Rc;
         H_L1TLmplusi_Tc.block(0, 3, 3, 3) = H_L1RLmplusi_pc;
         H_L1TLmplusi_Tc.block(3, 0, 3, 3) = H_L1pLmplusi_Rc;
