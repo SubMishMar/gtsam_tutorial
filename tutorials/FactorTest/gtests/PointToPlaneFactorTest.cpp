@@ -37,10 +37,10 @@ TEST(PointToPlaneFactor, Jacobian) {
 
     boost::function<gtsam::Vector(const gtsam::Pose3&, const gtsam::Pose3&, const gtsam::Vector3&, const gtsam::Pose3&)> f
     = boost::bind(&gtsam::PointToPlaneFactor::evaluateError, Factor, _1, _2, _3, _4, boost::none, boost::none, boost::none, boost::none);
-//
-//    // Use numerical derivatives to calculate the Jacobians
-//    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative41(f, pose1, poseM, velocityM, calib), H1Actual, 1e-9));
-//    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative42(f, pose1, poseM, velocityM, calib), H2Actual, 1e-9));
+
+    // Use numerical derivatives to calculate the Jacobians
+    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative41(f, pose1, poseM, velocityM, calib), H1Actual, 1e-9));
+    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative42(f, pose1, poseM, velocityM, calib), H2Actual, 1e-9));
     EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative43(f, pose1, poseM, velocityM, calib), H3Actual, 1e-9));
-//    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative44(f, pose1, poseM, velocityM, calib), H4Actual, 1e-9));
+    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative44(f, pose1, poseM, velocityM, calib), H4Actual, 1e-9));
 }
