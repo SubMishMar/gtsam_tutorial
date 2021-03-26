@@ -21,6 +21,7 @@ using namespace gtsam;
 // is r = h(x) - z, the goal of optimization is to find
 // the state variables which makes r = 0, or more precisely the
 // summation of all r = 0.
+
 double line(const Vector2& mc, const Vector2& xy,
             OptionalJacobian<1, 2> Hmc,
             OptionalJacobian<1, 2> Hxy) {

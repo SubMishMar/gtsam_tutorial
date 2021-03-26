@@ -1,0 +1,7 @@
+project(gtests)
+add_subdirectory(lib)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+find_package(GTSAM REQUIRED)
+add_executable(PointToPlaneFactorTest_run PointToPlaneFactorTest.cpp)
+target_link_libraries(PointToPlaneFactorTest_run Factor_lib gtsam -lboost_system)
+target_link_libraries(PointToPlaneFactorTest_run gtest gtest_main)

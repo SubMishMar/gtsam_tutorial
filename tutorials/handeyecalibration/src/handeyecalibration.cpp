@@ -217,7 +217,7 @@ void rotationalHandEyeCalibration(IMUIntrinsics imu_intrinsics,
             }
             j++;
         }
-        std::cout << i << "\t" << current_summarized_measurement->deltaRij().xyz().transpose()*180/M_PI << std::endl;
+        std::cout << i << "\t" << current_summarized_measurement->deltaPij().transpose() << std::endl;
         Rot3 deltaRij_I = current_summarized_measurement->deltaRij();
         Eigen::Matrix3d deltaRij_I_eig;
         deltaRij_I_eig << deltaRij_I.r1().x(), deltaRij_I.r2().x(), deltaRij_I.r3().x(),
