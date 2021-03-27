@@ -37,29 +37,15 @@ namespace gtsam {
         Matrix33 H_L1pmplusi_pa = H_L1Tmplusi_A.block(3, 3, 3,3);
 
         /// Jacobian of L1_T_Lmplusi wrt Tc
-        Matrix66 H_L1Tmplusi_Tc = H_11*H_9*H_7*H_5*H_3*H_1 + H_12;
-
-        /// Jacobian of L1_T_Lmplusi wrt Tc
-        Matrix3 H_L1RLmplusi_Rc = H_L1Tmplusi_Tc.block(0, 0, 3, 3);
-        Matrix3 H_L1RLmplusi_pc = H_L1Tmplusi_Tc.block(0, 3, 3, 3);
-        Matrix3 H_L1pLmplusi_Rc = H_L1Tmplusi_Tc.block(3, 0, 3, 3);
-        Matrix3 H_L1pLmplusi_pc = H_L1Tmplusi_Tc.block(3, 3, 3, 3);
-
         Matrix6 H_L1TLmplusi_Tc;
-        H_L1TLmplusi_Tc.block(0, 0, 3, 3) = H_L1RLmplusi_Rc;
-        H_L1TLmplusi_Tc.block(0, 3, 3, 3) = H_L1RLmplusi_pc;
-        H_L1TLmplusi_Tc.block(3, 0, 3, 3) = H_L1pLmplusi_Rc;
-        H_L1TLmplusi_Tc.block(3, 3, 3, 3) = H_L1pLmplusi_pc;
+        H_L1TLmplusi_Tc = H_11*H_9*H_7*H_5*H_3*H_1 + H_12;
 
         /// Jacobian of L1_T_Lmplusi wrt G_v_W
         Rot3 Rc = Tc.rotation();
         Rot3 G_R_I1 = wT1.rotation();
-        Matrix3 H_L1RLmplusi_GvIm = H_L1Rmplusi_Ra;
-        Matrix3 H_L1pLmplusi_GvIm = H_L1pmplusi_pa*deltaT;
-
         Matrix63 H_L1TLmplusi_GvIm; ;
-        H_L1TLmplusi_GvIm.block(0, 0, 3, 3) = H_L1RLmplusi_GvIm;
-        H_L1TLmplusi_GvIm.block(3, 0, 3, 3) = H_L1pLmplusi_GvIm;
+        H_L1TLmplusi_GvIm.block(0, 0, 3, 3) = H_L1Rmplusi_Ra;
+        H_L1TLmplusi_GvIm.block(3, 0, 3, 3) = H_L1pmplusi_pa*deltaT;
 
         /// Transform lidar point measurement
         Matrix H_xL1_L1TLmplusi; /// Jacobian of x_L1 wrt L1_T_Lmplusi (3 x 6)
