@@ -97,19 +97,9 @@ namespace gtsam {
         const Point3& lidar_point_measurement() const {return lidar_point_measurement_;};
 
         /** Residual/Error and Jacobian Calculator, Jacobians determined using GTSAM functions **/
-        Vector1 computeErrorAndJacobians1(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm, const Pose3& Tc,
+        Vector1 computeErrorAndJacobians(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm, const Pose3& Tc,
                                         OptionalJacobian<1, 6> H1, OptionalJacobian<1, 6> H2,
                                         OptionalJacobian<1, 3> H3, OptionalJacobian<1, 6> H4) const ;
-        
-        /** Residual/Error and Jacobian Calculator, Jacobians determined using GTSAM functions **/
-        Vector1 computeErrorAndJacobians2(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm, const Pose3& Tc,
-                                         OptionalJacobian<1, 6> H1, OptionalJacobian<1, 6> H2,
-                                         OptionalJacobian<1, 3> H3, OptionalJacobian<1, 6> H4) const ;
-
-        /** Residual/Error and Jacobian Calculator, self calculated Jacobians **/
-        Vector1 computeErrorAndJacobians3(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm, const Pose3& Tc,
-                                          OptionalJacobian<1, 6> H1, OptionalJacobian<1, 6> H2,
-                                          OptionalJacobian<1, 3> H3, OptionalJacobian<1, 6> H4) const ;
     private:
         friend class boost::serialization::access;
         template <class ARCHIVE>

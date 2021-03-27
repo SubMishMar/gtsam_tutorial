@@ -6,7 +6,7 @@
 
 namespace gtsam {
 
-    Vector1 PointToPlaneFactor::computeErrorAndJacobians1(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm, const Pose3& Tc,
+    Vector1 PointToPlaneFactor::computeErrorAndJacobians(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm, const Pose3& Tc,
                                                         OptionalJacobian<1, 6> H1, OptionalJacobian<1, 6> H2,
                                                         OptionalJacobian<1, 3> H3, OptionalJacobian<1, 6> H4) const {
         /// Pre-integrated measurements
@@ -89,7 +89,7 @@ namespace gtsam {
     Vector PointToPlaneFactor::evaluateError(const Pose3 &wT1, const Pose3 &wTm, const Vector3 &wVm, const Pose3 &Tc,
                                              boost::optional<Matrix &> H1, boost::optional<Matrix &> H2,
                                              boost::optional<Matrix &> H3, boost::optional<Matrix &> H4) const {
-        Vector1 error = computeErrorAndJacobians1(wT1, wTm, wVm, Tc, H1, H2, H3, H4);
+        Vector1 error = computeErrorAndJacobians(wT1, wTm, wVm, Tc, H1, H2, H3, H4);
         return error;
     }
 }
