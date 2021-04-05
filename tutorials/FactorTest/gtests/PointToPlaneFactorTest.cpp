@@ -27,7 +27,7 @@ gtsam::PreIntegratedIMUMeasurements preintimumeasurements =
          gtsam::Vector3(0, 0, 0), 0.01, gtsam::Vector3(0, 0, -9.81),
                  H_bias_omega, H_bias_acc};
 
-double weight = 1/100;
+double weight = 1/100.0f;
 
 TEST(PointToPlaneFactor, Jacobian) {
     // Create a factor
@@ -45,6 +45,7 @@ TEST(PointToPlaneFactor, Jacobian) {
     gtsam::Matrix H1Actual, H2Actual, H3Actual, H4Actual;
     Factor.computeErrorAndJacobians(pose1, pvM, biasM, calib, H1Actual, H2Actual, H3Actual, H4Actual);
 
+
     boost::function<gtsam::Vector(const gtsam::Pose3&, const gtsam::NavState&, const gtsam::Vector6&, const gtsam::Pose3&)> f
     = boost::bind(&gtsam::PointToPlaneFactor::evaluateError, Factor, _1, _2, _3, _4,
             boost::none, boost::none, boost::none, boost::none);
@@ -58,10 +59,25 @@ TEST(PointToPlaneFactor, Jacobian) {
     std::cout << "H1Expected" << std::endl;
     std::cout << H1Expected << std::endl;
     std::cout << "H1Actual" << std::endl;
-    std::cout << H1Actual << std::endl;
+    std::cout << H1Actual << std::endl << std::endl;
 
-    ASSERT_TRUE(gtsam::assert_equal(H1Expected, H1Actual, 1e-9));
-    ASSERT_TRUE(gtsam::assert_equal(H2Expected, H2Actual, 1e-9));
-    ASSERT_TRUE(gtsam::assert_equal(H3Expected, H3Actual, 1e-9));
-    ASSERT_TRUE(gtsam::assert_equal(H4Expected, H4Actual, 1e-9));
+    std::cout << "H2Expected" << std::endl;
+    std::cout << H2Expected << std::endl;
+    std::cout << "H2Actual" << std::endl;
+    std::cout << H2Actual << std::endl << std::endl;
+
+    std::cout << "H3Expected" << std::endl;
+    std::cout << H3Expected << std::endl;
+    std::cout << "H3Actual" << std::endl;
+    std::cout << H3Actual << std::endl << std::endl;
+
+    std::cout << "H4Expected" << std::endl;
+    std::cout << H4Expected << std::endl;
+    std::cout << "H4Actual" << std::endl;
+    std::cout << H4Actual << std::endl << std::endl;
+
+    EXPECT_TRUE(gtsam::assert_equal(H1Expected, H1Actual, 1e-9));
+    EXPECT_TRUE(gtsam::assert_equal(H2Expected, H2Actual, 1e-9));
+    EXPECT_TRUE(gtsam::assert_equal(H3Expected, H3Actual, 1e-9));
+    EXPECT_TRUE(gtsam::assert_equal(H4Expected, H4Actual, 1e-9));
 }

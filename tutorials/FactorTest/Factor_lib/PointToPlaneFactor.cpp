@@ -33,7 +33,20 @@ namespace gtsam {
         Matrix33 H_delV_bias_omega = H_bias_omega.block(6, 0, 3, 3);
         Vector3 bias_omega_hat = Vector3(Bm(3), Bm(4), Bm(5));
 
-        gtsam::Vector3 wVm = wPVm.velocity();
+        Matrix39 H_attitude_navstate;
+        Matrix39 H_position_navstate = gtsam::Matrix39::Zero();
+        H_position_navstate.block(0, 3, 3, 3) = gtsam::Matrix3::Identity();
+        Matrix39 H_velocity_navstate;
+
+        Matrix99 H_GPVm_navstate;
+
+        gtsam::Rot3 wRm = wPVm.attitude(H_attitude_navstate);
+        gtsam::Vector3 wVm = wPVm.velocity(H_velocity_navstate);
+
+        H_GPVm_navstate.block(0, 0, 3, 9) = H_attitude_navstate;
+        H_GPVm_navstate.block(3, 0, 3, 9) = H_position_navstate;
+        H_GPVm_navstate.block(6, 0, 3, 9) = H_velocity_navstate;
+
         gtsam::Pose3 wTm = wPVm.pose();
 
         Pose3 A = Pose3(Rot3::identity(), wVm*deltaT + 0.5*gravity*deltaT*deltaT);
@@ -85,7 +98,7 @@ namespace gtsam {
 
         /// Jacobian of L1_T_Lmplusi wrt B11
         Matrix66 H_L1TLmplusi_B11 = H_17*H_15*H_13*H_11*H_10;
-        Matrix33 H_L1RLmplusi_pB11 = H_L1TLmplusi_B11.block(0, 0, 3, 3);
+        Matrix33 H_L1RLmplusi_pB11 = H_L1TLmplusi_B11.block(0, 3, 3, 3);
         Matrix33 H_L1pLmplusi_pB11 = H_L1TLmplusi_B11.block(3, 3, 3, 3);
         /// Jacobian 1 of L1_T_Lmplusi wrt bg_hat
         Matrix63 H_L1TLmplusi_bg_hat1;
@@ -101,6 +114,8 @@ namespace gtsam {
 
         /// Jacobian of L1_T_Lmplusi wrt bg_hat
         Matrix63 H_L1TLmplusi_bg_hat = H_L1TLmplusi_bg_hat1 + H_L1TLmplusi_bg_hat2;
+//        Matrix63 H_L1TLmplusi_bg_hat = H_exp_Hbg*H_delR_bias_omega;
+//        Matrix63 H_L1TLmplusi_bg_hat = Matrix63::Zero();
 
         /// Jacobian of L1_T_Lmplusi wrt b = [ba, bg]
         Matrix6 H_L1TLmplusi_b;
@@ -128,7 +143,7 @@ namespace gtsam {
         if (H1)
             (*H1) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTI1).finished();
         if (H2)
-            (*H2) = (Matrix19() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GPVm).finished();
+            (*H2) = (Matrix19() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GPVm*H_GPVm_navstate).finished();
         if (H3)
             (*H3) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_b).finished();
         if (H4)
