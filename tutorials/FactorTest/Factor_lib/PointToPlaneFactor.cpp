@@ -4,7 +4,7 @@
 
 #include "PointToPlaneFactor.h"
 
-namespace lin_estimator {
+namespace gtsam {
 
     Vector1 PointToPlaneFactor::computeErrorAndJacobians(const Pose3& wT1,
                                                          const Pose3& wTm,
@@ -130,6 +130,7 @@ namespace lin_estimator {
             (*H4) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_b).finished();
         if (H5)
             (*H5) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_Tc).finished();
+
         return res;
     }
 

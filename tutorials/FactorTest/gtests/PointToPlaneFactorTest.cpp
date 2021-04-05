@@ -22,21 +22,16 @@ gtsam::Vector3 lidar_point(2, 4, 1);
 gtsam::Matrix93 H_bias_omega = gtsam::Matrix93::Ones();
 gtsam::Matrix93 H_bias_acc = gtsam::Matrix93::Ones();
 
-lin_estimator::PreIntegratedIMUMeasurements preintimumeasurements =
+gtsam::PreIntegratedIMUMeasurements preintimumeasurements =
         {gtsam::Rot3::identity(), gtsam::Vector3(0, 0, 0),
          gtsam::Vector3(0, 0, 0), 0.01, gtsam::Vector3(0, 0, -9.81),
                  H_bias_omega, H_bias_acc};
 
 double weight = 1/100;
 
-Vector Error(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm, const gtsam::Vector6& Bm, const Pose3& Tc,
-             const lin_estimator::PointToPlaneFactor& factor) {
-    return factor.evaluateError(wT1, wTm, wVm, Bm, Tc);
-}
-
 TEST(PointToPlaneFactor, Jacobian) {
     // Create a factor
-    lin_estimator::PointToPlaneFactor Factor(X(0), X(1), V(1), B(1), C(0),
+    gtsam::PointToPlaneFactor Factor(X(0), X(1), V(1), B(1), C(0),
                                               preintimumeasurements, plane_params, lidar_point, weight, noise_model);
 
     gtsam::Pose3 pose1 = gtsam::Pose3(gtsam::Rot3::RzRyRx(-0.3, 0.1, 0.01), gtsam::Vector3(0.5, -0.2, 0.1));
@@ -47,11 +42,11 @@ TEST(PointToPlaneFactor, Jacobian) {
 
     // Use the factor to calculate the Jacobians
     gtsam::Matrix H1Actual, H2Actual, H3Actual, H4Actual, H5Actual;
-    Factor.evaluateError(pose1, poseM, velocityM, biasM, calib, H1Actual, H2Actual, H3Actual, H4Actual, H5Actual);
+    Factor.computeErrorAndJacobians(pose1, poseM, velocityM, biasM, calib, H1Actual, H2Actual, H3Actual, H4Actual, H5Actual);
 
-    boost::function<gtsam::Vector(const gtsam::Pose3&, const gtsam::Pose3&, const gtsam::Vector3&, const gtsam::Vector6&, const gtsam::Pose3&)> f
-    = boost::bind(&lin_estimator::PointToPlaneFactor::evaluateError, Factor, _1, _2, _3, _4, _5,
-            boost::none, boost::none, boost::none, boost::none, boost::none);
+//    boost::function<gtsam::Vector(const gtsam::Pose3&, const gtsam::Pose3&, const gtsam::Vector3&, const gtsam::Vector6&, const gtsam::Pose3&)> f
+//    = boost::bind(&gtsam::PointToPlaneFactor::evaluateError, Factor, _1, _2, _3, _4, _5,
+//            boost::none, boost::none, boost::none, boost::none, boost::none);
 //    // Use numerical derivatives to calculate the Jacobians
 //    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative41(f, pose1, poseM, velocityM, calib), H1Actual, 1e-9));
 //    EXPECT_TRUE(gtsam::assert_equal(gtsam::numericalDerivative42(f, pose1, poseM, velocityM, calib), H2Actual, 1e-9));

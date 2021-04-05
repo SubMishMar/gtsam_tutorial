@@ -10,9 +10,7 @@
 #include <gtsam/navigation/ImuFactor.h>
 #include <ostream>
 
-using namespace gtsam;
-
-namespace lin_estimator {
+namespace gtsam {
 
     struct PreIntegratedIMUMeasurements{
         Rot3 deltaR;
@@ -105,10 +103,15 @@ namespace lin_estimator {
         /** implement functions needed to derive from Factor */
 
         /// Vector of errors
-        Vector evaluateError(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm,
-                             const Vector6& Bm, const Pose3& Tc,
-                             boost::optional<Matrix&> H1 = boost::none, boost::optional<Matrix&> H2 = boost::none,
-                             boost::optional<Matrix&> H3 = boost::none, boost::optional<Matrix&> H4 = boost::none,
+        Vector evaluateError(const Pose3& wT1,
+                             const Pose3& wTm,
+                             const Vector3& wVm,
+                             const Vector6& Bm,
+                             const Pose3& Tc,
+                             boost::optional<Matrix&> H1 = boost::none,
+                             boost::optional<Matrix&> H2 = boost::none,
+                             boost::optional<Matrix&> H3 = boost::none,
+                             boost::optional<Matrix&> H4 = boost::none,
                              boost::optional<Matrix&> H5 = boost::none) const override;
 
         /** return measured **/
