@@ -8,7 +8,7 @@ namespace gtsam {
 
     Vector1 PointToPlaneFactor::computeErrorAndJacobians(const Pose3& wT1,
                                                          const NavState& wPVm,
-                                                         const Vector6& Bm,
+                                                         const imuBias::ConstantBias& Bm,
                                                          const Pose3& Tc,
                                                          OptionalJacobian<1, 6> H1,
                                                          OptionalJacobian<1, 9> H2,
@@ -26,12 +26,12 @@ namespace gtsam {
         Matrix33 H_delR_bias_accel = H_bias_accel.block(0, 0, 3, 3);
         Matrix33 H_delP_bias_accel = H_bias_accel.block(3, 0, 3, 3);
         Matrix33 H_delV_bias_accel = H_bias_accel.block(6, 0, 3, 3);
-        Vector3 bias_accel_hat = Vector3(Bm(0), Bm(1), Bm(2));
+        Vector3 bias_accel_hat = Bm.accelerometer();
 
         Matrix33 H_delR_bias_omega = H_bias_omega.block(0, 0, 3, 3);
         Matrix33 H_delP_bias_omega = H_bias_omega.block(3, 0, 3, 3);
         Matrix33 H_delV_bias_omega = H_bias_omega.block(6, 0, 3, 3);
-        Vector3 bias_omega_hat = Vector3(Bm(3), Bm(4), Bm(5));
+        Vector3 bias_omega_hat = Bm.gyroscope();
 
         Matrix39 H_attitude_navstate;
         Matrix39 H_position_navstate = gtsam::Matrix39::Zero();
@@ -154,7 +154,7 @@ namespace gtsam {
 
     Vector PointToPlaneFactor::evaluateError(const Pose3& wT1,
                                              const NavState& wPVm,
-                                             const Vector6& Bm,
+                                             const imuBias::ConstantBias& Bm,
                                              const Pose3& Tc,
                                              boost::optional<Matrix&> H1,
                                              boost::optional<Matrix&> H2,

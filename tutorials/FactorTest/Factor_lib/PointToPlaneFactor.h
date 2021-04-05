@@ -8,6 +8,7 @@
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/navigation/NavState.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
+#include <gtsam/navigation/ImuBias.h>
 
 namespace gtsam {
 
@@ -24,10 +25,10 @@ namespace gtsam {
     /**
     * A class for point to plane constraint
     */
-    class PointToPlaneFactor : public NoiseModelFactor4<Pose3, NavState, Vector6, Pose3> {
+    class PointToPlaneFactor : public NoiseModelFactor4<Pose3, NavState, imuBias::ConstantBias, Pose3> {
     private:
         typedef PointToPlaneFactor This;
-        typedef NoiseModelFactor4<Pose3, NavState, Vector6, Pose3> Base;
+        typedef NoiseModelFactor4<Pose3, NavState, imuBias::ConstantBias, Pose3> Base;
 
         PreIntegratedIMUMeasurements preintegrated_imu_measurements_;
         Vector4 plane_param_measurement_;
@@ -103,7 +104,7 @@ namespace gtsam {
         /// Vector of errors
         Vector evaluateError(const Pose3& wT1,
                              const NavState& wPVm,
-                             const Vector6& Bm,
+                             const imuBias::ConstantBias& Bm,
                              const Pose3& Tc,
                              boost::optional<Matrix&> H1 = boost::none,
                              boost::optional<Matrix&> H2 = boost::none,
@@ -118,7 +119,7 @@ namespace gtsam {
         /** Residual/Error and Jacobian Calculator, Jacobians determined using GTSAM functions **/
         Vector1 computeErrorAndJacobians(const Pose3& wT1,
                                          const NavState& wPVm,
-                                         const Vector6& Bm,
+                                         const imuBias::ConstantBias& Bm,
                                          const Pose3& Tc,
                                          OptionalJacobian<1, 6> H1,
                                          OptionalJacobian<1, 9> H2,

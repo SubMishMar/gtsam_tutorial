@@ -38,7 +38,8 @@ TEST(PointToPlaneFactor, Jacobian) {
     gtsam::Pose3 poseM = gtsam::Pose3(gtsam::Rot3::RzRyRx(0.2, -0.3, 1.75), gtsam::Vector3(1.0, 2.0, -3.0));
     gtsam::Vector3 velocityM = gtsam::Vector3(0.01, 0.2, -0.1);
     gtsam::NavState pvM = gtsam::NavState(poseM, velocityM);
-    gtsam::Vector6 biasM = (gtsam::Vector(6) << 0.001, 0.002, 0.087, 0.004, 0.2, 0.03).finished();
+    gtsam::imuBias::ConstantBias biasM = gtsam::imuBias::ConstantBias(gtsam::Vector3(0.001, 0.002, 0.087),
+            gtsam::Vector3(0.004, 0.2, 0.03));
     gtsam::Pose3 calib = gtsam::Pose3(gtsam::Rot3::RzRyRx(-0.2, 0.1, 0.7), gtsam::Vector3(0.4, -0.3, 0.2));
 
     // Use the factor to calculate the Jacobians
@@ -46,7 +47,7 @@ TEST(PointToPlaneFactor, Jacobian) {
     Factor.computeErrorAndJacobians(pose1, pvM, biasM, calib, H1Actual, H2Actual, H3Actual, H4Actual);
 
 
-    boost::function<gtsam::Vector(const gtsam::Pose3&, const gtsam::NavState&, const gtsam::Vector6&, const gtsam::Pose3&)> f
+    boost::function<gtsam::Vector(const gtsam::Pose3&, const gtsam::NavState&, const gtsam::imuBias::ConstantBias&, const gtsam::Pose3&)> f
     = boost::bind(&gtsam::PointToPlaneFactor::evaluateError, Factor, _1, _2, _3, _4,
             boost::none, boost::none, boost::none, boost::none);
     // Use numerical derivatives to calculate the Jacobians
@@ -56,25 +57,25 @@ TEST(PointToPlaneFactor, Jacobian) {
     H3Expected = gtsam::numericalDerivative43(f, pose1, pvM, biasM, calib);
     H4Expected = gtsam::numericalDerivative44(f, pose1, pvM, biasM, calib);
 
-    std::cout << "H1Expected" << std::endl;
-    std::cout << H1Expected << std::endl;
-    std::cout << "H1Actual" << std::endl;
-    std::cout << H1Actual << std::endl << std::endl;
-
-    std::cout << "H2Expected" << std::endl;
-    std::cout << H2Expected << std::endl;
-    std::cout << "H2Actual" << std::endl;
-    std::cout << H2Actual << std::endl << std::endl;
-
-    std::cout << "H3Expected" << std::endl;
-    std::cout << H3Expected << std::endl;
-    std::cout << "H3Actual" << std::endl;
-    std::cout << H3Actual << std::endl << std::endl;
-
-    std::cout << "H4Expected" << std::endl;
-    std::cout << H4Expected << std::endl;
-    std::cout << "H4Actual" << std::endl;
-    std::cout << H4Actual << std::endl << std::endl;
+//    std::cout << "H1Expected" << std::endl;
+//    std::cout << H1Expected << std::endl;
+//    std::cout << "H1Actual" << std::endl;
+//    std::cout << H1Actual << std::endl << std::endl;
+//
+//    std::cout << "H2Expected" << std::endl;
+//    std::cout << H2Expected << std::endl;
+//    std::cout << "H2Actual" << std::endl;
+//    std::cout << H2Actual << std::endl << std::endl;
+//
+//    std::cout << "H3Expected" << std::endl;
+//    std::cout << H3Expected << std::endl;
+//    std::cout << "H3Actual" << std::endl;
+//    std::cout << H3Actual << std::endl << std::endl;
+//
+//    std::cout << "H4Expected" << std::endl;
+//    std::cout << H4Expected << std::endl;
+//    std::cout << "H4Actual" << std::endl;
+//    std::cout << H4Actual << std::endl << std::endl;
 
     EXPECT_TRUE(gtsam::assert_equal(H1Expected, H1Actual, 1e-9));
     EXPECT_TRUE(gtsam::assert_equal(H2Expected, H2Actual, 1e-9));
