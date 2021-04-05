@@ -7,15 +7,13 @@
 namespace gtsam {
 
     Vector1 PointToPlaneFactor::computeErrorAndJacobians(const Pose3& wT1,
-                                                         const Pose3& wTm,
-                                                         const Vector3& wVm,
+                                                         const NavState& wPVm,
                                                          const Vector6& Bm,
                                                          const Pose3& Tc,
                                                          OptionalJacobian<1, 6> H1,
-                                                         OptionalJacobian<1, 6> H2,
-                                                         OptionalJacobian<1, 3> H3,
-                                                         OptionalJacobian<1, 6> H4,
-                                                         OptionalJacobian<1, 6> H5) const {
+                                                         OptionalJacobian<1, 9> H2,
+                                                         OptionalJacobian<1, 6> H3,
+                                                         OptionalJacobian<1, 6> H4) const {
         /// Pre-integrated measurements
         Rot3 deltaR = preintegrated_imu_measurements_.deltaR;
         Vector3 deltaP = preintegrated_imu_measurements_.deltaP;
@@ -34,6 +32,9 @@ namespace gtsam {
         Matrix33 H_delP_bias_omega = H_bias_omega.block(3, 0, 3, 3);
         Matrix33 H_delV_bias_omega = H_bias_omega.block(6, 0, 3, 3);
         Vector3 bias_omega_hat = Vector3(Bm(3), Bm(4), Bm(5));
+
+        gtsam::Vector3 wVm = wPVm.velocity();
+        gtsam::Pose3 wTm = wPVm.pose();
 
         Pose3 A = Pose3(Rot3::identity(), wVm*deltaT + 0.5*gravity*deltaT*deltaT);
         Pose3 B11 = Pose3(Rot3::identity(), H_delP_bias_omega*bias_omega_hat);
@@ -56,7 +57,7 @@ namespace gtsam {
         Matrix H_L1TLmplusi_GTI1 = H_17*H_15*H_13*H_11*H_9*H_7*H_5*H_4*H_2;
 
         /// Jacobian of L1_T_Lmplusi wrt GTIm
-        Matrix H_L1TLmplusi_GTIm = H_17*H_15*H_13*H_11*H_9*H_8;
+        Matrix66 H_L1TLmplusi_GTIm = H_17*H_15*H_13*H_11*H_9*H_8;
 
         /// Jacobian of L1_T_Lmplusi wrt A
         Matrix66 H_L1Tmplusi_A = H_17*H_15*H_13*H_11*H_9*H_7*H_6;
@@ -107,7 +108,7 @@ namespace gtsam {
         H_L1TLmplusi_b.block(0, 3, 6, 3) = H_L1TLmplusi_bg_hat;
 
         /// Transform lidar point measurement
-        Matrix H_xL1_L1TLmplusi; /// Jacobian of x_L1 wrt L1_T_Lmplusi (3 x 6)
+        Matrix36 H_xL1_L1TLmplusi; /// Jacobian of x_L1 wrt L1_T_Lmplusi (3 x 6)
         Point3 x_L1 = L1_T_Lmplusi.transformFrom(lidar_point_measurement_, H_xL1_L1TLmplusi);
 
         /// Point to plane constraint
@@ -120,31 +121,31 @@ namespace gtsam {
         /// Jacobian of res wrt xL1 ( 1 x 3 )
         Matrix H_res_xL1 = weight_*n_L1.transpose();
 
+        Matrix69 H_L1TLmplusi_GPVm;
+        H_L1TLmplusi_GPVm.block(0, 0, 6, 6) = H_L1TLmplusi_GTIm;
+        H_L1TLmplusi_GPVm.block(0, 6, 6, 3) = H_L1TLmplusi_GvIm;
+
         if (H1)
             (*H1) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTI1).finished();
         if (H2)
-            (*H2) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTIm).finished();
+            (*H2) = (Matrix19() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GPVm).finished();
         if (H3)
-            (*H3) = (Matrix13() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GvIm).finished();
+            (*H3) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_b).finished();
         if (H4)
-            (*H4) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_b).finished();
-        if (H5)
-            (*H5) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_Tc).finished();
+            (*H4) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_Tc).finished();
 
         return res;
     }
 
     Vector PointToPlaneFactor::evaluateError(const Pose3& wT1,
-                                             const Pose3& wTm,
-                                             const Vector3& wVm,
+                                             const NavState& wPVm,
                                              const Vector6& Bm,
                                              const Pose3& Tc,
                                              boost::optional<Matrix&> H1,
                                              boost::optional<Matrix&> H2,
                                              boost::optional<Matrix&> H3,
-                                             boost::optional<Matrix&> H4,
-                                             boost::optional<Matrix&> H5) const {
-        Vector1 error = computeErrorAndJacobians(wT1, wTm, wVm, Bm, Tc, H1, H2, H3, H4, H5);
+                                             boost::optional<Matrix&> H4) const {
+        Vector1 error = computeErrorAndJacobians(wT1, wPVm, Bm, Tc, H1, H2, H3, H4);
         return error;
     }
 }

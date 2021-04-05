@@ -6,9 +6,8 @@
 #define LINKALIBR_POINTTOPLANEFACTOR_H
 
 #include <gtsam/geometry/Pose3.h>
+#include <gtsam/navigation/NavState.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
-#include <gtsam/navigation/ImuFactor.h>
-#include <ostream>
 
 namespace gtsam {
 
@@ -25,10 +24,10 @@ namespace gtsam {
     /**
     * A class for point to plane constraint
     */
-    class PointToPlaneFactor : public NoiseModelFactor5<Pose3, Pose3, Vector3, Vector6, Pose3> {
+    class PointToPlaneFactor : public NoiseModelFactor4<Pose3, NavState, Vector6, Pose3> {
     private:
         typedef PointToPlaneFactor This;
-        typedef NoiseModelFactor5<Pose3, Pose3, Vector3, Vector6, Pose3> Base;
+        typedef NoiseModelFactor4<Pose3, NavState, Vector6, Pose3> Base;
 
         PreIntegratedIMUMeasurements preintegrated_imu_measurements_;
         Vector4 plane_param_measurement_;
@@ -40,13 +39,13 @@ namespace gtsam {
         typedef boost::shared_ptr<PointToPlaneFactor> shared_ptr;
 
         /** default constructor - only use for serialization */
-        PointToPlaneFactor(Key key1, Key key2, Key key3, Key key4, Key key5,
+        PointToPlaneFactor(Key key1, Key key2, Key key3, Key key4,
                            const PreIntegratedIMUMeasurements& preintegrated_imu_measurements,
                            const Vector4& plane_param_measurement,
                            const Point3& lidar_point_measurement,
                            const double& weight,
                            const SharedNoiseModel& model)
-                : Base(model, key1, key2, key3, key4, key5),
+                : Base(model, key1, key2, key3, key4),
                   preintegrated_imu_measurements_(preintegrated_imu_measurements),
                   plane_param_measurement_(plane_param_measurement),
                   lidar_point_measurement_(lidar_point_measurement),
@@ -62,7 +61,6 @@ namespace gtsam {
                       << keyFormatter(this->key1()) << ","
                       << keyFormatter(this->key2()) << ","
                       << keyFormatter(this->key3()) << ","
-                      << keyFormatter(this->key4()) << ","
                       << keyFormatter(this->key4()) << ")" << std::endl;
             std::cout << "PreintegratedImuMeasurements\n"
                       << "deltaRij: \n" << preintegrated_imu_measurements_.deltaR.matrix() << "\n"
@@ -104,15 +102,13 @@ namespace gtsam {
 
         /// Vector of errors
         Vector evaluateError(const Pose3& wT1,
-                             const Pose3& wTm,
-                             const Vector3& wVm,
+                             const NavState& wPVm,
                              const Vector6& Bm,
                              const Pose3& Tc,
                              boost::optional<Matrix&> H1 = boost::none,
                              boost::optional<Matrix&> H2 = boost::none,
                              boost::optional<Matrix&> H3 = boost::none,
-                             boost::optional<Matrix&> H4 = boost::none,
-                             boost::optional<Matrix&> H5 = boost::none) const override;
+                             boost::optional<Matrix&> H4 = boost::none) const override;
 
         /** return measured **/
         const PreIntegratedIMUMeasurements& preintegrated_imu_measurements() const {return preintegrated_imu_measurements_;};
@@ -121,21 +117,19 @@ namespace gtsam {
         const double& weight() const {return weight_;}
         /** Residual/Error and Jacobian Calculator, Jacobians determined using GTSAM functions **/
         Vector1 computeErrorAndJacobians(const Pose3& wT1,
-                                         const Pose3& wTm,
-                                         const Vector3& wVm,
+                                         const NavState& wPVm,
                                          const Vector6& Bm,
                                          const Pose3& Tc,
                                          OptionalJacobian<1, 6> H1,
-                                         OptionalJacobian<1, 6> H2,
-                                         OptionalJacobian<1, 3> H3,
-                                         OptionalJacobian<1, 6> H4,
-                                         OptionalJacobian<1, 6> H5) const;
+                                         OptionalJacobian<1, 9> H2,
+                                         OptionalJacobian<1, 6> H3,
+                                         OptionalJacobian<1, 6> H4) const;
     private:
         friend class boost::serialization::access;
         template <class ARCHIVE>
         void serialize(ARCHIVE& ar, const unsigned int /*version*/) {
             ar & boost::serialization::make_nvp(
-                    "NoiseModelFactor5", boost::serialization::base_object<Base>(*this));
+                    "NoiseModelFactor4", boost::serialization::base_object<Base>(*this));
             ar & BOOST_SERIALIZATION_NVP(preintegrated_imu_measurements_);
             ar & BOOST_SERIALIZATION_NVP(plane_param_measurement_);
             ar & BOOST_SERIALIZATION_NVP(lidar_point_measurement_);
