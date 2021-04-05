@@ -27,10 +27,10 @@ namespace lin_estimator {
     /**
     * A class for point to plane constraint
     */
-    class PointToPlaneFactor : public NoiseModelFactor5<Pose3, Pose3, Vector3, imuBias::ConstantBias, Pose3> {
+    class PointToPlaneFactor : public NoiseModelFactor5<Pose3, Pose3, Vector3, Vector6, Pose3> {
     private:
         typedef PointToPlaneFactor This;
-        typedef NoiseModelFactor5<Pose3, Pose3, Vector3, imuBias::ConstantBias, Pose3> Base;
+        typedef NoiseModelFactor5<Pose3, Pose3, Vector3, Vector6, Pose3> Base;
 
         PreIntegratedIMUMeasurements preintegrated_imu_measurements_;
         Vector4 plane_param_measurement_;
@@ -106,7 +106,7 @@ namespace lin_estimator {
 
         /// Vector of errors
         Vector evaluateError(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm,
-                             const imuBias::ConstantBias& Bm, const Pose3& Tc,
+                             const Vector6& Bm, const Pose3& Tc,
                              boost::optional<Matrix&> H1 = boost::none, boost::optional<Matrix&> H2 = boost::none,
                              boost::optional<Matrix&> H3 = boost::none, boost::optional<Matrix&> H4 = boost::none,
                              boost::optional<Matrix&> H5 = boost::none) const override;
@@ -117,11 +117,16 @@ namespace lin_estimator {
         const Point3& lidar_point_measurement() const {return lidar_point_measurement_;}
         const double& weight() const {return weight_;}
         /** Residual/Error and Jacobian Calculator, Jacobians determined using GTSAM functions **/
-        Vector1 computeErrorAndJacobians(const Pose3& wT1, const Pose3& wTm, const Vector3& wVm,
-                                         const imuBias::ConstantBias& Bm, const Pose3& Tc,
-                                         OptionalJacobian<1, 6> H1, OptionalJacobian<1, 6> H2,
-                                         OptionalJacobian<1, 3> H3, OptionalJacobian<1, 6> H4,
-                                         OptionalJacobian<1, 6> H5) const ;
+        Vector1 computeErrorAndJacobians(const Pose3& wT1,
+                                         const Pose3& wTm,
+                                         const Vector3& wVm,
+                                         const Vector6& Bm,
+                                         const Pose3& Tc,
+                                         OptionalJacobian<1, 6> H1,
+                                         OptionalJacobian<1, 6> H2,
+                                         OptionalJacobian<1, 3> H3,
+                                         OptionalJacobian<1, 6> H4,
+                                         OptionalJacobian<1, 6> H5) const;
     private:
         friend class boost::serialization::access;
         template <class ARCHIVE>
