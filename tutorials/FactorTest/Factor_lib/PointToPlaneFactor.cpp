@@ -124,8 +124,6 @@ namespace lin_estimator {
 
         /// Jacobian of L1_T_Lmplusi wrt bg_hat
         Matrix63 H_L1TLmplusi_bg_hat = H_L1TLmplusi_bg_hat1 + H_L1TLmplusi_bg_hat2;
-//        Matrix63 H_L1TLmplusi_bg_hat = H_exp_Hbg*H_delR_bias_omega;
-//        Matrix63 H_L1TLmplusi_bg_hat = Matrix63::Zero();
 
         /// Jacobian of L1_T_Lmplusi wrt b = [ba, bg]
         Matrix6 H_L1TLmplusi_b;
