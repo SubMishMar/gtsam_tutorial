@@ -6,11 +6,11 @@
 
 namespace gtsam {
 
-    Vector1 PointToPlaneFactor::computeErrorAndJacobians(const Pose3& wT1,
+    Vector1 PointToPlaneFactor::computeErrorAndJacobians(const NavState& wPV1,
                                                          const NavState& wPVm,
                                                          const imuBias::ConstantBias& Bm,
                                                          const Pose3& Tc,
-                                                         OptionalJacobian<1, 6> H1,
+                                                         OptionalJacobian<1, 9> H1,
                                                          OptionalJacobian<1, 9> H2,
                                                          OptionalJacobian<1, 6> H3,
                                                          OptionalJacobian<1, 6> H4) const {
@@ -27,26 +27,33 @@ namespace gtsam {
         Matrix33 H_delP_bias_accel = H_bias_accel.block(3, 0, 3, 3);
         Matrix33 H_delV_bias_accel = H_bias_accel.block(6, 0, 3, 3);
         Vector3 bias_accel_hat = Bm.accelerometer();
-
         Matrix33 H_delR_bias_omega = H_bias_omega.block(0, 0, 3, 3);
         Matrix33 H_delP_bias_omega = H_bias_omega.block(3, 0, 3, 3);
         Matrix33 H_delV_bias_omega = H_bias_omega.block(6, 0, 3, 3);
         Vector3 bias_omega_hat = Bm.gyroscope();
 
-        Matrix39 H_attitude_navstate;
-        Matrix39 H_position_navstate = gtsam::Matrix39::Zero();
-        H_position_navstate.block(0, 3, 3, 3) = gtsam::Matrix3::Identity();
-        Matrix39 H_velocity_navstate;
+        Matrix39 H_attitude1_navstate;
+        Matrix39 H_position1_navstate = gtsam::Matrix39::Zero();
+        H_position1_navstate.block(0, 3, 3, 3) = gtsam::Matrix3::Identity();
+        Matrix39 H_velocity1_navstate;
+        Matrix99 H_GPV1_navstate;
+        gtsam::Rot3 wR1 = wPV1.attitude(H_attitude1_navstate);
+        gtsam::Vector3 wV1 = wPVm.velocity(H_velocity1_navstate);
+        H_GPV1_navstate.block(0, 0, 3, 9) = H_attitude1_navstate;
+        H_GPV1_navstate.block(3, 0, 3, 9) = H_position1_navstate;
+        H_GPV1_navstate.block(6, 0, 3, 9) = H_velocity1_navstate;
+        gtsam::Pose3 wT1 = wPV1.pose();
 
+        Matrix39 H_attitudeM_navstate;
+        Matrix39 H_positionM_navstate = gtsam::Matrix39::Zero();
+        H_positionM_navstate.block(0, 3, 3, 3) = gtsam::Matrix3::Identity();
+        Matrix39 H_velocityM_navstate;
         Matrix99 H_GPVm_navstate;
-
-        gtsam::Rot3 wRm = wPVm.attitude(H_attitude_navstate);
-        gtsam::Vector3 wVm = wPVm.velocity(H_velocity_navstate);
-
-        H_GPVm_navstate.block(0, 0, 3, 9) = H_attitude_navstate;
-        H_GPVm_navstate.block(3, 0, 3, 9) = H_position_navstate;
-        H_GPVm_navstate.block(6, 0, 3, 9) = H_velocity_navstate;
-
+        gtsam::Rot3 wRm = wPVm.attitude(H_attitudeM_navstate);
+        gtsam::Vector3 wVm = wPVm.velocity(H_velocityM_navstate);
+        H_GPVm_navstate.block(0, 0, 3, 9) = H_attitudeM_navstate;
+        H_GPVm_navstate.block(3, 0, 3, 9) = H_positionM_navstate;
+        H_GPVm_navstate.block(6, 0, 3, 9) = H_velocityM_navstate;
         gtsam::Pose3 wTm = wPVm.pose();
 
         Pose3 A = Pose3(Rot3::identity(), wVm*deltaT + 0.5*gravity*deltaT*deltaT);
@@ -67,7 +74,7 @@ namespace gtsam {
                             compose(Tc, H_17, H_18);
 
         /// Jacobian of L1_T_Lmplusi wrt GTI1
-        Matrix H_L1TLmplusi_GTI1 = H_17*H_15*H_13*H_11*H_9*H_7*H_5*H_4*H_2;
+        Matrix66 H_L1TLmplusi_GTI1 = H_17*H_15*H_13*H_11*H_9*H_7*H_5*H_4*H_2;
 
         /// Jacobian of L1_T_Lmplusi wrt GTIm
         Matrix66 H_L1TLmplusi_GTIm = H_17*H_15*H_13*H_11*H_9*H_8;
@@ -85,6 +92,9 @@ namespace gtsam {
         Matrix63 H_L1TLmplusi_GvIm; ;
         H_L1TLmplusi_GvIm.block(0, 0, 3, 3) = H_L1Rmplusi_pa;
         H_L1TLmplusi_GvIm.block(3, 0, 3, 3) = H_L1pmplusi_pa*deltaT;
+
+        /// Jacobian of L1_T_Lmplusi wrt G_v_1
+        Matrix63 H_L1TLmplusi_GvI1 = Matrix63::Zero();
 
         /// Jacobian of L1_T_Lmplusi wrt B12
         Matrix66 H_L1TLmplusi_B12 = H_17*H_15*H_13*H_12;
@@ -140,8 +150,12 @@ namespace gtsam {
         H_L1TLmplusi_GPVm.block(0, 0, 6, 6) = H_L1TLmplusi_GTIm;
         H_L1TLmplusi_GPVm.block(0, 6, 6, 3) = H_L1TLmplusi_GvIm;
 
+        Matrix69 H_L1TLmplusi_GPV1;
+        H_L1TLmplusi_GPV1.block(0, 0, 6, 6) = H_L1TLmplusi_GTI1;
+        H_L1TLmplusi_GPV1.block(0, 6, 6, 3) = H_L1TLmplusi_GvI1;
+
         if (H1)
-            (*H1) = (Matrix16() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GTI1).finished();
+            (*H1) = (Matrix19() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GPV1*H_GPV1_navstate).finished();
         if (H2)
             (*H2) = (Matrix19() << H_res_xL1*H_xL1_L1TLmplusi*H_L1TLmplusi_GPVm*H_GPVm_navstate).finished();
         if (H3)
@@ -152,7 +166,7 @@ namespace gtsam {
         return res;
     }
 
-    Vector PointToPlaneFactor::evaluateError(const Pose3& wT1,
+    Vector PointToPlaneFactor::evaluateError(const NavState& wPV1,
                                              const NavState& wPVm,
                                              const imuBias::ConstantBias& Bm,
                                              const Pose3& Tc,
@@ -160,7 +174,7 @@ namespace gtsam {
                                              boost::optional<Matrix&> H2,
                                              boost::optional<Matrix&> H3,
                                              boost::optional<Matrix&> H4) const {
-        Vector1 error = computeErrorAndJacobians(wT1, wPVm, Bm, Tc, H1, H2, H3, H4);
+        Vector1 error = computeErrorAndJacobians(wPV1, wPVm, Bm, Tc, H1, H2, H3, H4);
         return error;
     }
 }

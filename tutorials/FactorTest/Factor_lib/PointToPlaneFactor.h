@@ -25,10 +25,10 @@ namespace gtsam {
     /**
     * A class for point to plane constraint
     */
-    class PointToPlaneFactor : public NoiseModelFactor4<Pose3, NavState, imuBias::ConstantBias, Pose3> {
+    class PointToPlaneFactor : public NoiseModelFactor4<NavState, NavState, imuBias::ConstantBias, Pose3> {
     private:
         typedef PointToPlaneFactor This;
-        typedef NoiseModelFactor4<Pose3, NavState, imuBias::ConstantBias, Pose3> Base;
+        typedef NoiseModelFactor4<NavState, NavState, imuBias::ConstantBias, Pose3> Base;
 
         PreIntegratedIMUMeasurements preintegrated_imu_measurements_;
         Vector4 plane_param_measurement_;
@@ -102,7 +102,7 @@ namespace gtsam {
         /** implement functions needed to derive from Factor */
 
         /// Vector of errors
-        Vector evaluateError(const Pose3& wT1,
+        Vector evaluateError(const NavState& wPV1,
                              const NavState& wPVm,
                              const imuBias::ConstantBias& Bm,
                              const Pose3& Tc,
@@ -117,11 +117,11 @@ namespace gtsam {
         const Point3& lidar_point_measurement() const {return lidar_point_measurement_;}
         const double& weight() const {return weight_;}
         /** Residual/Error and Jacobian Calculator, Jacobians determined using GTSAM functions **/
-        Vector1 computeErrorAndJacobians(const Pose3& wT1,
+        Vector1 computeErrorAndJacobians(const NavState& wPV1,
                                          const NavState& wPVm,
                                          const imuBias::ConstantBias& Bm,
                                          const Pose3& Tc,
-                                         OptionalJacobian<1, 6> H1,
+                                         OptionalJacobian<1, 9> H1,
                                          OptionalJacobian<1, 9> H2,
                                          OptionalJacobian<1, 6> H3,
                                          OptionalJacobian<1, 6> H4) const;
