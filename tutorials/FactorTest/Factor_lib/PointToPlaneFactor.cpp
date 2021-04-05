@@ -4,7 +4,7 @@
 
 #include "PointToPlaneFactor.h"
 
-namespace gtsam {
+namespace lin_estimator {
 
     Vector1 PointToPlaneFactor::computeErrorAndJacobians(const NavState& wPV1,
                                                          const NavState& wPVm,

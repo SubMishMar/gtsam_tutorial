@@ -22,7 +22,7 @@ gtsam::Vector3 lidar_point(2, 4, 1);
 gtsam::Matrix93 H_bias_omega = gtsam::Matrix93::Ones();
 gtsam::Matrix93 H_bias_acc = gtsam::Matrix93::Ones();
 
-gtsam::PreIntegratedIMUMeasurements preintimumeasurements =
+lin_estimator::PreIntegratedIMUMeasurements preintimumeasurements =
         {gtsam::Rot3::identity(), gtsam::Vector3(0, 0, 0),
          gtsam::Vector3(0, 0, 0), 0.01, gtsam::Vector3(0, 0, -9.81),
                  H_bias_omega, H_bias_acc};
@@ -31,7 +31,7 @@ double weight = 1/100.0f;
 
 TEST(PointToPlaneFactor, Jacobian) {
     // Create a factor
-    gtsam::PointToPlaneFactor Factor(N(0),N(1), B(1), C(0),
+    lin_estimator::PointToPlaneFactor Factor(N(0),N(1), B(1), C(0),
                                               preintimumeasurements, plane_params, lidar_point, weight, noise_model);
 
     gtsam::Pose3 pose1 = gtsam::Pose3(gtsam::Rot3::RzRyRx(-0.3, 0.1, 0.01), gtsam::Vector3(0.5, -0.2, 0.1));
@@ -49,7 +49,7 @@ TEST(PointToPlaneFactor, Jacobian) {
 
 
     boost::function<gtsam::Vector(const gtsam::NavState&, const gtsam::NavState&, const gtsam::imuBias::ConstantBias&, const gtsam::Pose3&)> f
-    = boost::bind(&gtsam::PointToPlaneFactor::evaluateError, Factor, _1, _2, _3, _4,
+    = boost::bind(&lin_estimator::PointToPlaneFactor::evaluateError, Factor, _1, _2, _3, _4,
             boost::none, boost::none, boost::none, boost::none);
     // Use numerical derivatives to calculate the Jacobians
     gtsam::Matrix H1Expected, H2Expected, H3Expected, H4Expected;

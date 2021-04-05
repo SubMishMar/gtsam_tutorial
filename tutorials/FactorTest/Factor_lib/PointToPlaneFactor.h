@@ -10,7 +10,8 @@
 #include <gtsam/nonlinear/NonlinearFactor.h>
 #include <gtsam/navigation/ImuBias.h>
 
-namespace gtsam {
+using namespace gtsam;
+namespace lin_estimator {
 
     struct PreIntegratedIMUMeasurements{
         Rot3 deltaR;
