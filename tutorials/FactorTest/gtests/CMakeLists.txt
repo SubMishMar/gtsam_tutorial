@@ -10,3 +10,7 @@ target_link_libraries(PointToPlaneFactorTest_run gtest gtest_main)
 add_executable(LBLFactorTest_run LBLFactorTest.cpp)
 target_link_libraries(LBLFactorTest_run Factor_lib gtsam -lboost_system)
 target_link_libraries(LBLFactorTest_run gtest gtest_main)
+
+add_executable(PointToPlaneFactorTest2_run PointToPlaneFactorTest2.cpp)
+target_link_libraries(PointToPlaneFactorTest2_run Factor_lib gtsam -lboost_system)
+target_link_libraries(PointToPlaneFactorTest2_run gtest gtest_main)

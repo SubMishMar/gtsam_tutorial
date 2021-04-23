@@ -1,7 +1,7 @@
 project(Factor_lib)
 
-set(HEADER_FILES PointToPlaneFactor.h LBLFactor.h)
-set(SOURCE_FILES PointToPlaneFactor.cpp LBLFactor.cpp)
+set(HEADER_FILES PointToPlaneFactor.h LBLFactor.h PointToPlaneFactor2.h)
+set(SOURCE_FILES PointToPlaneFactor.cpp LBLFactor.cpp PointToPlaneFactor2.cpp)
 
 find_package(GTSAM REQUIRED)
 
