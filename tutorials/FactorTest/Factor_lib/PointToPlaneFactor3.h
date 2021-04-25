@@ -1,10 +1,9 @@
 //
-// Created by usl on 3/19/21.
+// Created by usl on 4/25/21.
 //
 
-#ifndef LINKALIBR_POINTTOPLANEFACTOR_H
-#define LINKALIBR_POINTTOPLANEFACTOR_H
-
+#ifndef FACTORTEST_POINTTOPLANEFACTOR3_H
+#define FACTORTEST_POINTTOPLANEFACTOR3_H
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/navigation/NavState.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
@@ -18,10 +17,10 @@ namespace lin_estimator {
     /**
     * A class for point to plane constraint
     */
-    class PointToPlaneFactor : public NoiseModelFactor4<NavState, NavState, imuBias::ConstantBias, Pose3> {
+    class PointToPlaneFactor3 : public NoiseModelFactor4<Pose3, Vector3 , imuBias::ConstantBias, Pose3> {
     private:
-        typedef PointToPlaneFactor This;
-        typedef NoiseModelFactor4<NavState, NavState, imuBias::ConstantBias, Pose3> Base;
+        typedef PointToPlaneFactor3 This;
+        typedef NoiseModelFactor4<Pose3, Vector3 , imuBias::ConstantBias, Pose3> Base;
 
         PreIntegratedIMUMeasurements preintegrated_imu_measurements_;
         Vector4 plane_param_measurement_;
@@ -30,10 +29,10 @@ namespace lin_estimator {
 
     public:
         /// Shorthand for a smart pointer to a factor
-        typedef boost::shared_ptr<PointToPlaneFactor> shared_ptr;
+        typedef boost::shared_ptr<PointToPlaneFactor3> shared_ptr;
 
         /** default constructor - only use for serialization */
-        PointToPlaneFactor(Key key1, Key key2, Key key3, Key key4,
+        PointToPlaneFactor3(Key key1, Key key2, Key key3, Key key4,
                            const PreIntegratedIMUMeasurements& preintegrated_imu_measurements,
                            const Vector4& plane_param_measurement,
                            const Point3& lidar_point_measurement,
@@ -45,7 +44,7 @@ namespace lin_estimator {
                   lidar_point_measurement_(lidar_point_measurement),
                   weight_(weight){}
 
-        ~PointToPlaneFactor(){}
+        ~PointToPlaneFactor3(){}
 
         /** Implement functions needed for Testable */
 
@@ -87,16 +86,16 @@ namespace lin_estimator {
             const bool lp = traits<Vector3>::Equals(this->lidar_point_measurement_, e->lidar_point_measurement_, tol);
             const bool wt = traits<double>::Equals(this->weight_, e->weight_, tol);
             return e != nullptr && base && pim_deltaR && pim_deltaV
-                                && pim_deltaP && pim_deltaT && pim_gravity
-                                && pim_H_bias_omega && pim_H_bias_accel
-                                && pp && lp && wt;
+                   && pim_deltaP && pim_deltaT && pim_gravity
+                   && pim_H_bias_omega && pim_H_bias_accel
+                   && pp && lp && wt;
         }
 
         /** implement functions needed to derive from Factor */
 
         /// Vector of errors
-        Vector evaluateError(const NavState& wPV1,
-                             const NavState& wPVm,
+        Vector evaluateError(const Pose3& I1_T_Ik,
+                             const Vector3& I1_v_Ik,
                              const imuBias::ConstantBias& Bm,
                              const Pose3& Tc,
                              boost::optional<Matrix&> H1 = boost::none,
@@ -110,12 +109,12 @@ namespace lin_estimator {
         const Point3& lidar_point_measurement() const {return lidar_point_measurement_;}
         const double& weight() const {return weight_;}
         /** Residual/Error and Jacobian Calculator, Jacobians determined using GTSAM functions **/
-        Vector1 computeErrorAndJacobians(const NavState& wPV1,
-                                         const NavState& wPVm,
+        Vector1 computeErrorAndJacobians(const Pose3& I1_T_Ik,
+                                         const Vector3& I1_v_Ik,
                                          const imuBias::ConstantBias& Bm,
                                          const Pose3& Tc,
-                                         OptionalJacobian<1, 9> H1,
-                                         OptionalJacobian<1, 9> H2,
+                                         OptionalJacobian<1, 6> H1,
+                                         OptionalJacobian<1, 3> H2,
                                          OptionalJacobian<1, 6> H3,
                                          OptionalJacobian<1, 6> H4) const;
     private:
@@ -130,5 +129,4 @@ namespace lin_estimator {
         }
     };
 }
-#endif //LINKALIBR_POINTTOPLANEFACTOR_H
-
+#endif //FACTORTEST_POINTTOPLANEFACTOR3_H
