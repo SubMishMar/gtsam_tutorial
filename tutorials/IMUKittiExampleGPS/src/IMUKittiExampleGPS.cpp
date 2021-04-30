@@ -313,15 +313,16 @@ int main(int argc, char* argv[]) {
                                                                              imuBias::ConstantBias(),
                                                                              sigma_between_b);
 
+            std::cout << "included_imu_measurement_count: " << included_imu_measurement_count << std::endl;
             // Create GPS factor
             auto gps_pose = Pose3(current_pose_global.rotation(), gps_measurements[i].position);
             if ((i % gps_skip) == 0) {
                 new_factors.emplace_shared<PriorFactor<Pose3>>(current_pose_key, gps_pose, noise_model_gps);
                 new_values.insert(current_pose_key, gps_pose);
 
-                printf("################ POSE INCLUDED AT TIME %lf ################\n", t);
-                cout << gps_pose.translation();
-                printf("\n\n");
+//                printf("################ POSE INCLUDED AT TIME %lf ################\n", t);
+//                cout << gps_pose.translation();
+//                printf("\n\n");
             } else {
                 new_values.insert(current_pose_key, current_pose_global);
             }
@@ -335,8 +336,8 @@ int main(int argc, char* argv[]) {
             // We accumulate 2*GPSskip GPS measurements before updating the solver at
             // first so that the heading becomes observable.
             if (i > (first_gps_pose + 2*gps_skip)) {
-                printf("################ NEW FACTORS AT TIME %lf ################\n", t);
-                new_factors.print();
+//                printf("################ NEW FACTORS AT TIME %lf ################\n", t);
+//                new_factors.print();
 
                 isam.update(new_factors, new_values);
 
@@ -351,41 +352,41 @@ int main(int argc, char* argv[]) {
                 current_velocity_global = result.at<Vector3>(current_vel_key);
                 current_bias = result.at<imuBias::ConstantBias>(current_bias_key);
 
-                printf("\n################ POSE AT TIME %lf ################\n", t);
-                current_pose_global.print();
-                printf("\n\n");
+//                printf("\n################ POSE AT TIME %lf ################\n", t);
+//                current_pose_global.print();
+//                printf("\n\n");
             }
         }
     }
 
-    // Save results to file
-    printf("\nWriting results to file...\n");
-    FILE* fp_out = fopen(output_filename.c_str(), "w+");
-    fprintf(fp_out, "#time(s),x(m),y(m),z(m),qx,qy,qz,qw,gt_x(m),gt_y(m),gt_z(m)\n");
-
-    Values result = isam.calculateEstimate();
-    for (size_t i = first_gps_pose; i < gps_measurements.size() - 1; i++) {
-        auto pose_key = X(i);
-        auto vel_key = V(i);
-        auto bias_key = B(i);
-
-        auto pose = result.at<Pose3>(pose_key);
-        auto velocity = result.at<Vector3>(vel_key);
-        auto bias = result.at<imuBias::ConstantBias>(bias_key);
-
-        auto pose_quat = pose.rotation().toQuaternion();
-        auto gps = gps_measurements[i].position;
-
-        cout << "State at #" << i << endl;
-        cout << "Position:" << endl << pose.translation().transpose() << endl;
-//        cout << "Velocity:" << endl << velocity << endl;
-//        cout << "Bias:" << endl << bias << endl;
-
-        fprintf(fp_out, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
-                gps_measurements[i].time, pose.x(), pose.y(), pose.z(),
-                pose_quat.x(), pose_quat.y(), pose_quat.z(), pose_quat.w(),
-                gps(0), gps(1), gps(2));
-    }
-    fclose(fp_out);
+//    // Save results to file
+//    printf("\nWriting results to file...\n");
+//    FILE* fp_out = fopen(output_filename.c_str(), "w+");
+//    fprintf(fp_out, "#time(s),x(m),y(m),z(m),qx,qy,qz,qw,gt_x(m),gt_y(m),gt_z(m)\n");
+//
+//    Values result = isam.calculateEstimate();
+//    for (size_t i = first_gps_pose; i < gps_measurements.size() - 1; i++) {
+//        auto pose_key = X(i);
+//        auto vel_key = V(i);
+//        auto bias_key = B(i);
+//
+//        auto pose = result.at<Pose3>(pose_key);
+//        auto velocity = result.at<Vector3>(vel_key);
+//        auto bias = result.at<imuBias::ConstantBias>(bias_key);
+//
+//        auto pose_quat = pose.rotation().toQuaternion();
+//        auto gps = gps_measurements[i].position;
+//
+//        cout << "State at #" << i << endl;
+//        cout << "Position:" << endl << pose.translation().transpose() << endl;
+////        cout << "Velocity:" << endl << velocity << endl;
+////        cout << "Bias:" << endl << bias << endl;
+//
+//        fprintf(fp_out, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+//                gps_measurements[i].time, pose.x(), pose.y(), pose.z(),
+//                pose_quat.x(), pose_quat.y(), pose_quat.z(), pose_quat.w(),
+//                gps(0), gps(1), gps(2));
+//    }
+//    fclose(fp_out);
 }
 

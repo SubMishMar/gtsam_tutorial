@@ -31,7 +31,7 @@ namespace lin_estimator {
 
         /// Point to plane constraint
         Point3 n_L1 = Point3(plane_param_measurement_.x(), plane_param_measurement_.y(), plane_param_measurement_.z());
-        double d_L1 = plane_param_measurement_.z();
+        double d_L1 = plane_param_measurement_.w();
 
         /// Residual
         Vector1 res = Vector1((n_L1.transpose()*x_L1 + d_L1));
